@@ -7,6 +7,7 @@
 
 # dependencies
 /node_modules
+src/assets/tcga-cases.tsv
 
 # IDEs and editors
 /.idea

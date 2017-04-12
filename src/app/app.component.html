@@ -1,3 +1,7 @@
-<h1>
-  {{title}}
-</h1>
+<md-grid-list [cols]="1" [rowHeight]="window.innerHeight">
+    <md-grid-tile>
+        <md-card>
+            <app-plot></app-plot>
+        </md-card>
+    </md-grid-tile>
+</md-grid-list>
