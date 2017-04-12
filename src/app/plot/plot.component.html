@@ -1,15 +1,32 @@
-<md-select placeholder="Pathologic stage" *ngIf="filterOptions.case_pathologic_stage"
-           [(ngModel)]="filter.case_pathologic_stage" (ngModelChange)="filterData()">
-    <md-option *ngFor="let stage of filterOptions.case_pathologic_stage" [value]="stage">{{ stage }}</md-option>
-</md-select>
-<md-select placeholder="Disease type" *ngIf="filterOptions.case_disease_type" [(ngModel)]="filter.case_disease_type"
-           (ngModelChange)="filterData()">
-    <md-option *ngFor="let type of filterOptions.case_disease_type" [value]="type">{{ type }}</md-option>
-</md-select>
-<md-select placeholder="Gender" *ngIf="filterOptions.case_gender" [(ngModel)]="filter.case_gender"
-           (ngModelChange)="filterData()">
-    <md-option *ngFor="let gender of filterOptions.case_gender" [value]="gender">{{ gender }}</md-option>
-</md-select>
+<div>
+    <md-select placeholder="Pathologic stage" *ngIf="filterOptions.case_pathologic_stage"
+               [(ngModel)]="filter.case_pathologic_stage" (ngModelChange)="filterData()">
+        <md-option *ngFor="let stage of filterOptions.case_pathologic_stage" [value]="stage">{{ stage }}</md-option>
+    </md-select>
+    <md-select placeholder="Disease type" *ngIf="filterOptions.case_disease_type" [(ngModel)]="filter.case_disease_type"
+               (ngModelChange)="filterData()">
+        <md-option *ngFor="let type of filterOptions.case_disease_type" [value]="type">{{ type }}</md-option>
+    </md-select>
+    <md-select placeholder="Gender" *ngIf="filterOptions.case_gender" [(ngModel)]="filter.case_gender"
+               (ngModelChange)="filterData()">
+        <md-option *ngFor="let gender of filterOptions.case_gender" [value]="gender">{{ gender }}</md-option>
+    </md-select>
+</div>
 <div id="chartContainer">
-    <svg id="chart" #chart></svg>
+    <svg id="chart" #chart>
+        <style>
+            .label {
+                stroke: black;
+            }
+
+            .axis text {
+                font-family: sans-serif;
+                font-size: 11px;
+            }
+
+            g.axis.y .label {
+                transform: translate(60px, -20px);
+            }
+        </style>
+    </svg>
 </div>

@@ -49,7 +49,7 @@ export class PlotComponent implements AfterViewInit {
                 d.case_age_at_diagnosis = parseFloat(d.case_age_at_diagnosis);
             });
 
-            this.chart.render(data);
+            this.chart.data(data).render();
 
             this.filterOptions.case_gender = [FILTER_NULL].concat(this.chart.scale.case_gender.domain());
             this.filterOptions.case_disease_type = [FILTER_NULL].concat(this.chart.scale.case_disease_type.domain());
