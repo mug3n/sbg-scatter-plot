@@ -57,6 +57,11 @@ export class ScatterPlotChart extends Chart {
         scope: d3.axisBottom(this.scale.scope)
     };
 
+    public shape: any = {
+        MALE: d3.symbol().size(10 * 10).type(d3.symbolTriangle),
+        FEMALE: d3.symbol().size(12 * 12).type(d3.symbolSquare),
+    };
+
     public cases: d3.Selection<any, any, any, any>;
     public scope: d3.Selection<any, any, any, any>;
     public brush: d3.Selection<any, any, any, any>;
@@ -179,23 +184,17 @@ export class ScatterPlotChart extends Chart {
                      .data(data)
                      .enter();
 
-        shapes.filter((d: any) => d.case_gender === 'FEMALE')
-              .append('path')
-              .attr('d', d3.symbol().size(10 * 10).type(d3.symbolSquare))
-              .attr('class', 'case')
-              .attr('transform',
-                  (d: Case) => `translate(${this.scale.x(d.case_days_to_death)}, ${this.scale.y(d.case_age_at_diagnosis)})`)
-              .style('fill', 'transparent')
-              .style('stroke', (d: Case) => this.scale.case_pathologic_stage(d.case_pathologic_stage));
-
-        shapes.filter((d: any) => d.case_gender === 'MALE')
-              .append('path')
-              .attr('d', d3.symbol().size(10 * 10).type(d3.symbolTriangle))
-              .attr('class', 'case')
-              .attr('transform',
-                  (d: Case) => `translate(${this.scale.x(d.case_days_to_death)}, ${this.scale.y(d.case_age_at_diagnosis)})`)
-              .style('fill', 'transparent')
-              .style('stroke', (d: Case) => this.scale.case_pathologic_stage(d.case_pathologic_stage));
+        shapes.each(
+            (d, i, selection) => {
+                d3.select(selection[i]).append('path')
+                  .attr('d', this.shape[d.case_gender])
+                  .attr('class', 'case')
+                  .attr('transform',
+                      (d: Case) => `translate(${this.scale.x(d.case_days_to_death)}, ${this.scale.y(d.case_age_at_diagnosis)})`)
+                  .style('fill', 'transparent')
+                  .style('stroke', (d: Case) => this.scale.case_pathologic_stage(d.case_pathologic_stage));
+            }
+        );
 
         legend = this.cases
                      .selectAll('.legend--stage')
@@ -230,10 +229,7 @@ export class ScatterPlotChart extends Chart {
         legend.each(
             (d, i, selection) => {
                 d3.select(selection[i]).append('path')
-                  .attr('d', d === 'MALE' ?
-                      d3.symbol().size(10 * 10).type(d3.symbolTriangle) :
-                      d3.symbol().size(12 * 12).type(d3.symbolSquare)
-                  )
+                  .attr('d', this.shape[d])
                   .attr('transform', `translate(${this.width - 9}, ${d === 'MALE' ? 12 : 10})`)
                   .style('fill', 'transparent')
                   .style('stroke', 'black');
