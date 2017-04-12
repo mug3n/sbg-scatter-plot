@@ -143,6 +143,10 @@ export class ScatterPlotChart extends Chart {
                     return;
                 }
 
+                if (!(selection[1] - selection[0])) {
+                    selection[1] += 1;
+                }
+
                 this.scale.x.domain(selection.map(this.scale.scope.invert, this.scale.scope));
                 this.cases.selectAll('.case')
                     .attr('transform',
@@ -150,6 +154,7 @@ export class ScatterPlotChart extends Chart {
                     );
                 this.element.select('g.x.axis').call(this.axis.x);
             });
+
         this.brush.call(brush)
             .call(brush.move, this.scale.x.range());
 
