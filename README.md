@@ -4,8 +4,8 @@
 
 ## Dev
 
-`$ ng serve` - `http://localhost:4200/`
+`$ npm start` - `http://localhost:4200/`
 
 ## Build
 
-`$ ng build -prod`
+`$ npm run build -prod`
