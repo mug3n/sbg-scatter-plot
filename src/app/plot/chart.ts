@@ -62,11 +62,11 @@ export class ScatterPlotChart extends Chart {
         FEMALE: d3.symbol().size(12 * 12).type(d3.symbolSquare),
     };
 
-    public cases: d3.Selection<any, any, any, any>;
+    public plot: d3.Selection<any, any, any, any>;
     public scope: d3.Selection<any, any, any, any>;
     public brush: d3.Selection<any, any, any, any>;
 
-    private _filter: (d: Case) => boolean = () => true;
+    private _filter: (d: Case) => boolean;
 
     constructor(svg) {
         super(svg);
@@ -76,6 +76,7 @@ export class ScatterPlotChart extends Chart {
             .attr('transform', 'translate(0, 0)');
     }
 
+    // maybe use getters but would lose chaining ability
     public filter(filter: (d: Case) => boolean) {
         this._filter = filter;
 
@@ -88,12 +89,18 @@ export class ScatterPlotChart extends Chart {
         return this;
     }
 
-    public render() {
-        let legend, shapes, data: Case[], brush;
-
-        data = this._data.filter(this._filter);
-
+    public clear() {
         this.element.selectAll('g').remove();
+    }
+
+    public render() {
+        let data: Case[], brush, legend;
+
+        // filter data with provided filter
+        data = this._filter ? this._data.filter(this._filter) : this._data;
+
+        // clear view
+        this.clear();
 
         this.scale.x.domain(d3.extent(data, d => d.case_days_to_death)).nice();
         this.scale.scope.domain(this.scale.x.domain()).nice();
@@ -102,12 +109,13 @@ export class ScatterPlotChart extends Chart {
         this.scale.case_disease_type.domain(d3.map(data, d => d.case_disease_type).keys());
         this.scale.case_gender.domain(d3.map(data, d => d.case_gender).keys());
 
-        this.cases = this.element
-                         .append('g')
-                         .attr('id', 'cases')
-                         .attr('transform', `translate(${this.margin.left}, ${this.margin.top})`);
+        // plot
+        this.plot = this.element
+                        .append('g')
+                        .attr('id', 'cases')
+                        .attr('transform', `translate(${this.margin.left}, ${this.margin.top})`);
 
-        this.cases
+        this.plot
             .attr('clip-path', 'url(#clip)')
             .attr('height', this.height + 10)
             .attr('width', this.width + this.margin.left + this.margin.right + 20)
@@ -118,6 +126,7 @@ export class ScatterPlotChart extends Chart {
             .attr('height', this.height + 10)
             .attr('width', this.width);
 
+        // brush
         this.scope = this.element
                          .append('g')
                          .attr('id', 'scope')
@@ -148,7 +157,7 @@ export class ScatterPlotChart extends Chart {
                 }
 
                 this.scale.x.domain(selection.map(this.scale.scope.invert, this.scale.scope));
-                this.cases.selectAll('.case')
+                this.plot.selectAll('.case')
                     .attr('transform',
                         (d: Case) => `translate(${this.scale.x(d.case_days_to_death)}, ${this.scale.y(d.case_age_at_diagnosis)})`
                     );
@@ -164,6 +173,7 @@ export class ScatterPlotChart extends Chart {
             .attr('transform', 'translate(0, 50)');
 
 
+        // x axis
         this.element.append('g')
             .attr('class', 'x axis')
             .attr('transform', `translate(${this.margin.left},${(this.height + this.margin.top)})`)
@@ -175,6 +185,7 @@ export class ScatterPlotChart extends Chart {
             .style('text-anchor', 'end')
             .text('Days to death');
 
+        // y axis
         this.element.append('g')
             .attr('class', 'y axis')
             .attr('transform', `translate(${this.margin.left}, ${this.margin.top})`)
@@ -185,24 +196,25 @@ export class ScatterPlotChart extends Chart {
             .style('text-anchor', 'end')
             .text('Age at diagnosis');
 
-        shapes = this.cases.selectAll('.case')
-                     .data(data)
-                     .enter();
+        // points
+        this.plot.selectAll('.case')
+            .data(data)
+            .enter()
+            .append('path')
+            .each(
+                (d, i, selection) => {
+                    d3.select(selection[i])
+                      .attr('d', this.shape[d.case_gender]);
+                }
+            )
+            .attr('class', 'case')
+            .attr('transform',
+                (d: Case) => `translate(${this.scale.x(d.case_days_to_death)}, ${this.scale.y(d.case_age_at_diagnosis)})`)
+            .style('fill', 'transparent')
+            .style('stroke', (d: Case) => this.scale.case_pathologic_stage(d.case_pathologic_stage));
 
-        shapes.each(
-            (d, i, selection) => {
-                d3.select(selection[i]).append('path')
-                  .attr('d', this.shape[d.case_gender])
-                  .attr('class', 'case')
-                  .attr('transform',
-                      (d: Case) => `translate(${this.scale.x(d.case_days_to_death)}, ${this.scale.y(d.case_age_at_diagnosis)})`)
-                  .style('fill', 'transparent')
-                  .style('stroke', (d: Case) => this.scale.case_pathologic_stage(d.case_pathologic_stage));
-            }
-        );
-
-        legend = this.cases
-                     .selectAll('.legend--stage')
+        // legend
+        legend = this.plot.selectAll('.legend--stage')
                      .data(this.scale.case_pathologic_stage.domain())
                      .enter().append('g')
                      .attr('class', 'legend--stage')
@@ -225,21 +237,22 @@ export class ScatterPlotChart extends Chart {
                   return d;
               });
 
-        legend = this.cases.selectAll('.legend--gender')
+        legend = this.plot.selectAll('.legend--gender')
                      .data(this.scale.case_gender.domain())
                      .enter().append('g')
                      .attr('class', 'legend--gender')
                      .attr('transform', (d, i) => `translate(0, ${(this.scale.case_pathologic_stage.domain().length + i) * 20})`);
 
-        legend.each(
-            (d, i, selection) => {
-                d3.select(selection[i]).append('path')
-                  .attr('d', this.shape[d])
-                  .attr('transform', `translate(${this.width - 9}, ${d === 'MALE' ? 12 : 10})`)
-                  .style('fill', 'transparent')
-                  .style('stroke', 'black');
-            }
-        );
+        legend.append('path')
+              .each(
+                  (d: string, i, selection) => {
+                      d3.select(selection[i])
+                        .attr('d', this.shape[d])
+                        .attr('transform', `translate(${this.width - 9}, ${d === 'MALE' ? 12 : 10})`);
+                  }
+              )
+              .style('fill', 'transparent')
+              .style('stroke', 'black');
 
         legend.append('text')
               .attr('x', this.width - 24)
